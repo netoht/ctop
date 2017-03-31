@@ -11,6 +11,7 @@ var log = logging.Init()
 type Compact struct {
 	Status *Status
 	Name   *TextCol
+	Health *TextCol
 	Cid    *TextCol
 	Cpu    *GaugeCol
 	Memory *GaugeCol
@@ -30,6 +31,7 @@ func NewCompact(id string) *Compact {
 	row := &Compact{
 		Status: NewStatus(),
 		Name:   NewTextCol("-"),
+		Health: NewTextCol("-"),
 		Cid:    NewTextCol(id),
 		Cpu:    NewGaugeCol(),
 		Memory: NewGaugeCol(),
@@ -65,6 +67,7 @@ func (row *Compact) SetMetrics(m metrics.Metrics) {
 	row.SetMem(m.MemUsage, m.MemLimit, m.MemPercent)
 	row.SetIO(m.IOBytesRead, m.IOBytesWrite)
 	row.SetPids(m.Pids)
+	row.Health.Set(m.Health)
 }
 
 // Set gauges, counters to default unread values
@@ -74,6 +77,7 @@ func (row *Compact) Reset() {
 	row.Net.Reset()
 	row.IO.Reset()
 	row.Pids.Reset()
+	row.Health.Reset()
 }
 
 func (row *Compact) GetHeight() int {
@@ -119,6 +123,7 @@ func (row *Compact) Buffer() ui.Buffer {
 
 	buf.Merge(row.Status.Buffer())
 	buf.Merge(row.Name.Buffer())
+	buf.Merge(row.Health.Buffer())
 	buf.Merge(row.Cid.Buffer())
 	buf.Merge(row.Cpu.Buffer())
 	buf.Merge(row.Memory.Buffer())
@@ -132,6 +137,7 @@ func (row *Compact) all() []ui.GridBufferer {
 	return []ui.GridBufferer{
 		row.Status,
 		row.Name,
+		row.Health,
 		row.Cid,
 		row.Cpu,
 		row.Memory,

@@ -47,6 +47,7 @@ func (c *Docker) Start() {
 			c.ReadMem(s)
 			c.ReadNet(s)
 			c.ReadIO(s)
+			c.ReadHealth()
 			c.stream <- c.Metrics
 		}
 		log.Infof("collector stopped for container: %s", c.id)
@@ -109,4 +110,14 @@ func (c *Docker) ReadIO(stats *api.Stats) {
 		}
 	}
 	c.IOBytesRead, c.IOBytesWrite = read, write
+}
+
+func (c *Docker) ReadHealth() {
+	container, err := c.client.InspectContainer(c.id)
+	if err == nil {
+		status := container.State.Health.Status
+		if status != "" {
+			c.Health = status
+		}
+	}
 }
